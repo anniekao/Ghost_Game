@@ -7,8 +7,8 @@ class GhostGame
     attr_accessor :fragment
 
     def initialize(*names)
-        @players = {}
-        names.each { |name| @players[name] = Player.new(name)}
+        @players = []
+        names.each { |name| @players << Player.new(name)}
 
         @fragment = ""
         
@@ -19,7 +19,7 @@ class GhostGame
 
         @dictionary = Set.new(words)
         @losses = Hash.new(0)
-        @players.each { |player, value| @losses[player] = 0}
+        @players.each { |player| @losses[player.name] = 0}
     end 
 
     def play_round
@@ -30,10 +30,10 @@ class GhostGame
                 puts " "
             self.take_turn
             self.next_player!
-            if @dictionary.include?(@fragment)
+            if @dictionary.include?(@fragment) #should this be moved elsewhere?
                 puts "***********************"
                 puts "Round over! #{previous_player.name} spelled #{fragment}! They're out!"
-                @losses[previous_player.name] += 1
+                @losses[previous_player.name] += 1 
                 puts " "
                 self.display_standing
                 @fragment = ""
@@ -58,7 +58,7 @@ class GhostGame
         @players = @players.rotate
     end
 
-    def delete_player(player)
+    def delete_player(player) #needs to be tested
         @players.delete(player)
         @losses.delete(player)
     end
@@ -92,24 +92,25 @@ class GhostGame
         score_strings[losses_score]
     end
 
-    def run
+    def run #needs to be updated for multiplayer
         until @losses[current_player.name] == 5 || @losses[previous_player.name] == 5
             self.play_round
         end
+
+        #delete the loser from the players array here?
         puts "#{winner} has won!"
         puts "GAME OVER!"
     end
 
     def display_standing
-        puts "#{player1.name}'s score: #{record(player1.name)}"
-        puts "#{player2.name}'s score: #{record(player2.name)}"
+        @players.each { |player| puts "#{player.name} score is: " }
     end
 
-    def winner
+    def winner #needs to be updated for multiplayer         
         return current_player.name if @losses[current_player.name] < 5
         return previous_player.name if @losses[previous_player.name] < 5
     end
 end
 
 ghost = GhostGame.new("James", "Paul", "Anna", "Amy")
-p ghost.players
+p ghost.record("James")
