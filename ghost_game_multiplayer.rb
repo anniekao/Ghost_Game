@@ -32,8 +32,9 @@ class GhostGame
             self.next_player!
             if @dictionary.include?(@fragment) #should this be moved elsewhere?
                 puts "***********************"
-                puts "Round over! #{previous_player.name} spelled #{fragment}! They're out!"
+                puts "Round over! #{previous_player.name} spelled #{fragment}!"
                 @losses[previous_player.name] += 1 
+                self.check_loser
                 puts " "
                 self.display_standing
                 @fragment = ""
@@ -58,9 +59,14 @@ class GhostGame
         @players = @players.rotate
     end
 
-    def delete_player(player) #needs to be tested
-        @players.delete(player)
-        @losses.delete(player)
+    def delete_player(player_name) #needs to be tested
+        @players.each_with_index do |player, i| 
+            if player.name == player_name
+                @players.delete_at(i)
+            end
+        end   
+
+        @losses.delete(player_name)
     end
 
     def take_turn
@@ -92,25 +98,35 @@ class GhostGame
         score_strings[losses_score]
     end
 
-    def run #needs to be updated for multiplayer
-        until @losses[current_player.name] == 5 || @losses[previous_player.name] == 5
+    def run 
+        until @players.length == 1
             self.play_round
         end
 
-        #delete the loser from the players array here?
-        puts "#{winner} has won!"
+        puts "#{current_player} has won!"
         puts "GAME OVER!"
     end
 
     def display_standing
-        @players.each { |player| puts "#{player.name} score is: " }
+        @players.each { |player| puts "#{player.name} score is: #{record(player.name)}" }
     end
 
-    def winner #needs to be updated for multiplayer         
-        return current_player.name if @losses[current_player.name] < 5
-        return previous_player.name if @losses[previous_player.name] < 5
+    def check_loser
+        @players.each do |player|
+            if @losses[player.name] == 5
+                puts " "
+                puts "!!!!!!!!!!!"
+                puts "#{player.name} spelled GHOST! They're out!"
+                puts "!!!!!!!!!!!"
+                puts " "
+                delete_player(player.name)
+            end
+        end
     end
+
 end
 
 ghost = GhostGame.new("James", "Paul", "Anna", "Amy")
-p ghost.record("James")
+ghost.losses["Paul"] = 5
+ghost.check_loser
+p ghost.players
