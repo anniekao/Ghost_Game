@@ -8,7 +8,7 @@ class GhostGame
 
     def initialize(*names)
         @players = []
-        names.each { |name| @players << Player.new(name)}
+        names.each { |name| @players << Player.new(name) }
 
         @fragment = ""
         
@@ -25,6 +25,7 @@ class GhostGame
     def play_round
         play = true
         while play
+            puts " "
              puts "-----------------------"
                 puts "It's #{current_player.name}'s turn!'"
                 puts " "
@@ -39,10 +40,6 @@ class GhostGame
                 self.display_standing
                 @fragment = ""
                 play = false
-            else
-                puts "-----------------------"
-                puts "It's #{current_player.name}'s turn!'"
-                puts " "
             end
         end
     end
@@ -103,12 +100,12 @@ class GhostGame
             self.play_round
         end
 
-        puts "#{current_player} has won!"
+        puts "#{current_player.name} has won!"
         puts "GAME OVER!"
     end
 
     def display_standing
-        @players.each { |player| puts "#{player.name} score is: #{record(player.name)}" }
+        @players.each { |player| puts "#{player.name}'s score is: #{record(player.name)}" }
     end
 
     def check_loser
@@ -126,7 +123,20 @@ class GhostGame
 
 end
 
-ghost = GhostGame.new("James", "Paul", "Anna", "Amy")
-ghost.losses["Paul"] = 5
-ghost.check_loser
-p ghost.players
+if __FILE__== $PROGRAM_NAME
+    puts "How many players? "
+    player_names = []
+    player_num = gets.chomp.to_i
+    player_count = 1
+
+    player_num.times do
+        puts "Player #{player_count}'s name:"
+        player_name = gets.chomp
+        player_names << player_name
+        player_count += 1
+    end
+
+    ghost_game = GhostGame.new(*player_names)
+    ghost_game.run
+end
+
