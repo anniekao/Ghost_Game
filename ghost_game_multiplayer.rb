@@ -1,6 +1,7 @@
 require "set"
 require "byebug"
 require_relative "player"
+require_relative "AiPlayer"
 
 class GhostGame
     attr_reader :players, :dictionary, :losses
