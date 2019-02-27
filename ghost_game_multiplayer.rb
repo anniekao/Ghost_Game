@@ -4,15 +4,15 @@ require_relative "player"
 require_relative "AiPlayer"
 
 class GhostGame
-    attr_reader :players, :dictionary, :losses
-    attr_accessor :fragment
+    attr_reader :dictionary, :losses
+    attr_accessor :fragment, :players
 
     def initialize(*names)
         @players = []
         names.each { |name| @players << Player.new(name) }
 
         @fragment = ""
-        
+
         words = File.readlines("dictionary.txt")
         words.each_with_index do |word, i|
             words[i] = word.chomp
@@ -21,7 +21,7 @@ class GhostGame
         @dictionary = Set.new(words)
         @losses = Hash.new(0)
         @players.each { |player| @losses[player.name] = 0}
-    end 
+    end
 
     def play_round
         play = true
@@ -32,49 +32,49 @@ class GhostGame
                 puts " "
             self.take_turn
             self.next_player!
-            if @dictionary.include?(@fragment) #should this be moved elsewhere?
+            if dictionary.include?(fragment) #should this be moved elsewhere?
                 puts "***********************"
                 puts "Round over! #{previous_player.name} spelled #{fragment}!"
-                @losses[previous_player.name] += 1 
+                losses[previous_player.name] += 1
                 self.check_loser
                 puts " "
+                self.clear_fragment
                 self.display_standing
-                @fragment = ""
                 play = false
             end
         end
     end
 
     def current_player
-        @players.first
+        players.first
     end
-    
+
     def previous_player
-        @players.last
+        players.last
     end
 
     def next_player!
-        @players = @players.rotate
+        players.rotate
     end
 
     def delete_player(player_name) #needs to be tested
-        @players.each_with_index do |player, i| 
+        players.each_with_index do |player, i|
             if player.name == player_name
-                @players.delete_at(i)
+                players.delete_at(i)
             end
-        end   
+        end
 
-        @losses.delete(player_name)
+        losses.delete(player_name)
     end
 
     def take_turn
         valid = false
-    
-        until valid 
+
+        until valid
             guess = current_player.guess
             if valid_play?(guess)
                 puts "That's a valid guess."
-                @fragment += guess
+                fragment << guess
                 valid = true
             else
                 current_player.alert_invalid_guess
@@ -84,7 +84,7 @@ class GhostGame
 
     def valid_play?(guess)
         alphabet = Set.new("a".."z")
-        possible_fragment = @fragment + guess
+        possible_fragment = fragment + guess
 
         return false if !alphabet.include?(guess) || !dictionary.any? { |word| word.start_with?(possible_fragment)}
         true
@@ -96,8 +96,8 @@ class GhostGame
         score_strings[losses_score]
     end
 
-    def run 
-        until @players.length == 1
+    def run
+        until players.length == 1
             self.play_round
         end
 
@@ -106,12 +106,12 @@ class GhostGame
     end
 
     def display_standing
-        @players.each { |player| puts "#{player.name}'s score is: #{record(player.name)}" }
+        players.each { |player| puts "#{player.name}'s score is: #{record(player.name)}" }
     end
 
     def check_loser
-        @players.each do |player|
-            if @losses[player.name] == 5
+        players.each do |player|
+            if losses[player.name] == 5
                 puts " "
                 puts "!!!!!!!!!!!"
                 puts "#{player.name} spelled GHOST! They're out!"
@@ -122,6 +122,9 @@ class GhostGame
         end
     end
 
+    def clear_fragment
+        fragment.clear
+    end
 end
 
 if __FILE__== $PROGRAM_NAME
@@ -140,4 +143,3 @@ if __FILE__== $PROGRAM_NAME
     ghost_game = GhostGame.new(*player_names)
     ghost_game.run
 end
-
