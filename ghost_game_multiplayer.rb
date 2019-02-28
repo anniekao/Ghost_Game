@@ -1,7 +1,6 @@
 require "set"
 require "byebug"
 require_relative "player"
-require_relative "AiPlayer"
 
 class GhostGame
     attr_reader :dictionary, :losses
@@ -32,9 +31,9 @@ class GhostGame
                 puts " "
             self.take_turn
             self.next_player!
-            if dictionary.include?(fragment) #should this be moved elsewhere?
+            if dictionary.include?(@fragment) #should this be moved elsewhere?
                 puts "***********************"
-                puts "Round over! #{previous_player.name} spelled #{fragment}!"
+                puts "Round over! #{previous_player.name} spelled #{@fragment}!"
                 losses[previous_player.name] += 1
                 self.check_loser
                 puts " "
@@ -46,25 +45,25 @@ class GhostGame
     end
 
     def current_player
-        players.first
+        @players.first
     end
 
     def previous_player
-        players.last
+        @players.last
     end
 
     def next_player!
-        players.rotate
+        @players = @players.rotate
     end
 
     def delete_player(player_name) #needs to be tested
-        players.each_with_index do |player, i|
-            if player.name == player_name
-                players.delete_at(i)
+        @players.each_with_index do |player, i|
+            if @player.name == player_name
+                @players.delete_at(i)
             end
         end
 
-        losses.delete(player_name)
+        @losses.delete(player_name)
     end
 
     def take_turn
@@ -74,7 +73,7 @@ class GhostGame
             guess = current_player.guess
             if valid_play?(guess)
                 puts "That's a valid guess."
-                fragment << guess
+                @fragment << guess
                 valid = true
             else
                 current_player.alert_invalid_guess
@@ -84,7 +83,7 @@ class GhostGame
 
     def valid_play?(guess)
         alphabet = Set.new("a".."z")
-        possible_fragment = fragment + guess
+        possible_fragment = @fragment + guess
 
         return false if !alphabet.include?(guess) || !dictionary.any? { |word| word.start_with?(possible_fragment)}
         true
@@ -92,12 +91,12 @@ class GhostGame
 
     def record(player)
         score_strings = {0 => "You haven't lost yet!", 1 => "G", 2 => "GH", 3 => "GHO", 4 => "GHOS", 5=> "GHOST"}
-        losses_score = losses[player]
+        losses_score = @losses[player]
         score_strings[losses_score]
     end
 
     def run
-        until players.length == 1
+        until @players.length == 1
             self.play_round
         end
 
@@ -106,12 +105,12 @@ class GhostGame
     end
 
     def display_standing
-        players.each { |player| puts "#{player.name}'s score is: #{record(player.name)}" }
+        @players.each { |player| puts "#{player.name}'s score is: #{record(player.name)}" }
     end
 
     def check_loser
-        players.each do |player|
-            if losses[player.name] == 5
+        @players.each do |player|
+            if @losses[player.name] == 5
                 puts " "
                 puts "!!!!!!!!!!!"
                 puts "#{player.name} spelled GHOST! They're out!"
@@ -123,7 +122,7 @@ class GhostGame
     end
 
     def clear_fragment
-        fragment.clear
+        @fragment.clear
     end
 end
 
@@ -140,6 +139,5 @@ if __FILE__== $PROGRAM_NAME
         player_count += 1
     end
 
-    ghost_game = GhostGame.new(*player_names)
-    ghost_game.run
+    GhostGame.new(*player_names).run
 end
